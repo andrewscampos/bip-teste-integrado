@@ -1,0 +1,5 @@
+/home/andrews/git/bip-teste-integrado/ejb-module/src/main/java/com/bip/ejb/model/Beneficio.java
+/home/andrews/git/bip-teste-integrado/ejb-module/src/main/java/com/bip/ejb/model/TransferenciaLog.java
+/home/andrews/git/bip-teste-integrado/ejb-module/src/main/java/com/bip/ejb/model/TransferenciaStatus.java
+/home/andrews/git/bip-teste-integrado/ejb-module/src/main/java/com/bip/ejb/service/BeneficioEjbService.java
+/home/andrews/git/bip-teste-integrado/ejb-module/src/main/java/com/bip/ejb/service/TransferenciaEjbService.java

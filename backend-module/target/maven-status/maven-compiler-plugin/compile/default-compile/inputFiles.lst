@@ -1,0 +1,12 @@
+/home/andrews/git/bip-teste-integrado/backend-module/src/main/java/com/bip/backend/beneficio/dto/response/BeneficioResponse.java
+/home/andrews/git/bip-teste-integrado/backend-module/src/main/java/com/bip/backend/beneficio/backend/mapper/BeneficioMapper.java
+/home/andrews/git/bip-teste-integrado/backend-module/src/main/java/com/bip/backend/beneficio/service/BeneficioService.java
+/home/andrews/git/bip-teste-integrado/backend-module/src/main/java/com/bip/backend/beneficio/dto/request/BeneficioCreateRequest.java
+/home/andrews/git/bip-teste-integrado/backend-module/src/main/java/com/bip/backend/beneficio/exception/BeneficioNotFoundException.java
+/home/andrews/git/bip-teste-integrado/backend-module/src/main/java/com/bip/backend/beneficio/service/impl/TransferenciaServiceImpl.java
+/home/andrews/git/bip-teste-integrado/backend-module/src/main/java/com/bip/backend/ConfigurationBeans.java
+/home/andrews/git/bip-teste-integrado/backend-module/src/main/java/com/bip/backend/beneficio/controller/BeneficioController.java
+/home/andrews/git/bip-teste-integrado/backend-module/src/main/java/com/bip/backend/beneficio/service/TransferenciaService.java
+/home/andrews/git/bip-teste-integrado/backend-module/src/main/java/com/bip/backend/beneficio/dto/request/TransferenciaRequest.java
+/home/andrews/git/bip-teste-integrado/backend-module/src/main/java/com/bip/backend/beneficio/service/impl/BeneficioServiceImpl.java
+/home/andrews/git/bip-teste-integrado/backend-module/src/main/java/com/bip/backend/BackendApplication.java

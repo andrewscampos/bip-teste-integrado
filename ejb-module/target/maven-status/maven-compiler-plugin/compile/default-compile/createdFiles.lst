@@ -1,0 +1,5 @@
+com/bip/ejb/service/TransferenciaEjbService.class
+com/bip/ejb/service/BeneficioEjbService.class
+com/bip/ejb/model/TransferenciaLog.class
+com/bip/ejb/model/Beneficio.class
+com/bip/ejb/model/TransferenciaStatus.class

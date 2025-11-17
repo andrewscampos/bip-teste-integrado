@@ -1,0 +1,11 @@
+com/bip/backend/beneficio/dto/request/TransferenciaRequest.class
+com/bip/backend/beneficio/service/impl/TransferenciaServiceImpl.class
+com/bip/backend/beneficio/backend/mapper/BeneficioMapper.class
+com/bip/backend/beneficio/dto/response/BeneficioResponse.class
+com/bip/backend/beneficio/service/BeneficioService.class
+com/bip/backend/beneficio/service/TransferenciaService.class
+com/bip/backend/beneficio/dto/request/BeneficioCreateRequest.class
+com/bip/backend/beneficio/exception/BeneficioNotFoundException.class
+com/bip/backend/ConfigurationBeans.class
+com/bip/backend/BackendApplication.class
+com/bip/backend/beneficio/controller/BeneficioController.class

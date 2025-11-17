@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Benefícios</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .glass-dark {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.3s ease;
+        }
+        
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+        }
+        
+        .slide-enter-active, .slide-leave-active {
+            transition: all 0.3s ease;
+        }
+        
+        .slide-enter-from {
+            transform: translateY(-20px);
+            opacity: 0;
+        }
+        
+        .slide-leave-to {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .btn-success:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        .btn-danger:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .status-badge {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div id="app">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <div class="glass rounded-3xl p-6 md:p-8 mb-8 shadow-2xl">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div>
+                        <h1 class="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                            💎 Gestão de Benefícios
+                        </h1>
+                        <p class="text-gray-600 mt-2">Gerencie seus benefícios de forma eficiente</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button @click="openCreateModal" class="btn-primary text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 shadow-lg">
+                            <span class="text-xl">+</span> Novo Benefício
+                        </button>
+                        <button @click="openTransferModal" class="btn-success text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 shadow-lg">
+                            <span class="text-xl">↔</span> Transferir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div v-if="loading" class="flex justify-center items-center py-20">
+                <div class="glass-dark rounded-2xl p-8">
+                    <div class="animate-spin rounded-full h-16 w-16 border-4 border-white border-t-transparent"></div>
+                </div>
+            </div>
+
+            <!-- Alert Messages -->
+            <transition name="slide">
+                <div v-if="alert.show" :class="['glass rounded-2xl p-4 mb-6 shadow-lg', alert.type === 'success' ? 'border-l-4 border-green-500' : 'border-l-4 border-red-500']">
+                    <div class="flex justify-between items-center">
+                        <span :class="alert.type === 'success' ? 'text-green-700' : 'text-red-700'">{{ alert.message }}</span>
+                        <button @click="alert.show = false" class="text-gray-500 hover:text-gray-700">✕</button>
+                    </div>
+                </div>
+            </transition>
+
+            <!-- Benefits Grid -->
+            <div v-if="!loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <transition-group name="fade">
+                    <div v-for="beneficio in beneficios" :key="beneficio.id" 
+                         class="glass rounded-2xl p-6 shadow-xl card-hover">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex-1">
+                                <h3 class="text-xl font-bold text-gray-800 mb-1">{{ beneficio.nome }}</h3>
+                                <p class="text-sm text-gray-600">{{ beneficio.descricao || 'Sem descrição' }}</p>
+                            </div>
+                            <span v-if="beneficio.ativo" class="status-badge bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full font-semibold">
+                                Ativo
+                            </span>
+                            <span v-else class="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded-full font-semibold">
+                                Inativo
+                            </span>
+                        </div>
+                        
+                        <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 mb-4">
+                            <p class="text-sm text-gray-600 mb-1">Valor Total</p>
+                            <p class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                                R$ {{ formatCurrency(beneficio.valor) }}
+                            </p>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <button @click="openEditModal(beneficio)" 
+                                    class="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-all">
+                                ✏️ Editar
+                            </button>
+                            <button @click="confirmDelete(beneficio.id)" 
+                                    class="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-all">
+                                🗑️ Excluir
+                            </button>
+                        </div>
+                    </div>
+                </transition-group>
+            </div>
+
+            <!-- Empty State -->
+            <div v-if="!loading && beneficios.length === 0" class="glass rounded-3xl p-16 text-center shadow-2xl">
+                <div class="text-6xl mb-4">📦</div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">Nenhum benefício cadastrado</h3>
+                <p class="text-gray-600 mb-6">Comece criando seu primeiro benefício</p>
+                <button @click="openCreateModal" class="btn-primary text-white px-8 py-3 rounded-xl font-semibold inline-flex items-center gap-2 shadow-lg">
+                    <span class="text-xl">+</span> Criar Benefício
+                </button>
+            </div>
+        </div>
+
+        <!-- Create/Edit Modal -->
+        <transition name="fade">
+            <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" @click.self="closeModal">
+                <div class="glass rounded-3xl p-8 max-w-md w-full shadow-2xl transform transition-all" @click.stop>
+                    <h2 class="text-2xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        {{ editMode ? '✏️ Editar Benefício' : '➕ Novo Benefício' }}
+                    </h2>
+                    
+                    <form @submit.prevent="saveBeneficio" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Nome *</label>
+                            <input v-model="form.nome" type="text" required minlength="3" maxlength="100"
+                                   class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 transition-all"
+                                   placeholder="Ex: Vale Alimentação">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Descrição</label>
+                            <textarea v-model="form.descricao" maxlength="255" rows="3"
+                                      class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 transition-all"
+                                      placeholder="Descrição do benefício"></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Valor (R$) *</label>
+                            <input v-model="form.valor" type="number" step="0.01" min="0" required
+                                   class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 transition-all"
+                                   placeholder="0.00">
+                        </div>
+                        
+                        <div class="flex items-center gap-3">
+                            <input v-model="form.ativo" type="checkbox" id="ativo" class="w-5 h-5 rounded">
+                            <label for="ativo" class="text-sm font-semibold text-gray-700">Benefício Ativo</label>
+                        </div>
+                        
+                        <div class="flex gap-3 pt-4">
+                            <button type="button" @click="closeModal"
+                                    class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-xl font-semibold transition-all">
+                                Cancelar
+                            </button>
+                            <button type="submit"
+                                    class="flex-1 btn-primary text-white px-6 py-3 rounded-xl font-semibold shadow-lg">
+                                {{ editMode ? 'Atualizar' : 'Criar' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </transition>
+
+        <!-- Transfer Modal -->
+        <transition name="fade">
+            <div v-if="showTransferModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" @click.self="closeTransferModal">
+                <div class="glass rounded-3xl p-8 max-w-md w-full shadow-2xl transform transition-all" @click.stop>
+                    <h2 class="text-2xl font-bold mb-6 bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent">
+                        💸 Transferir Valores
+                    </h2>
+                    
+                    <form @submit.prevent="executeTransfer" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">De (Origem) *</label>
+                            <select v-model="transferForm.fromId" required
+                                    class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 transition-all">
+                                <option value="">Selecione o benefício de origem</option>
+                                <option v-for="b in activeBeneficios" :key="'from-'+b.id" :value="b.id">
+                                    {{ b.nome }} - R$ {{ formatCurrency(b.valor) }}
+                                </option>
+                            </select>
+                        </div>
+                        
+                        <div class="text-center text-2xl text-gray-400">↓</div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Para (Destino) *</label>
+                            <select v-model="transferForm.toId" required
+                                    class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 transition-all">
+                                <option value="">Selecione o benefício de destino</option>
+                                <option v-for="b in activeBeneficios" :key="'to-'+b.id" :value="b.id" 
+                                        :disabled="b.id === transferForm.fromId">
+                                    {{ b.nome }} - R$ {{ formatCurrency(b.valor) }}
+                                </option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Valor (R$) *</label>
+                            <input v-model="transferForm.amount" type="number" step="0.01" min="0.01" required
+                                   class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 transition-all"
+                                   placeholder="0.00">
+                        </div>
+                        
+                        <div class="flex gap-3 pt-4">
+                            <button type="button" @click="closeTransferModal"
+                                    class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-xl font-semibold transition-all">
+                                Cancelar
+                            </button>
+                            <button type="submit"
+                                    class="flex-1 btn-success text-white px-6 py-3 rounded-xl font-semibold shadow-lg">
+                                Transferir
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </transition>
+
+        <!-- Delete Confirmation Modal -->
+        <transition name="fade">
+            <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" @click.self="showDeleteModal = false">
+                <div class="glass rounded-3xl p-8 max-w-sm w-full shadow-2xl transform transition-all" @click.stop>
+                    <div class="text-center">
+                        <div class="text-6xl mb-4">⚠️</div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">Confirmar Exclusão</h3>
+                        <p class="text-gray-600 mb-6">Tem certeza que deseja excluir este benefício?</p>
+                        <div class="flex gap-3">
+                            <button @click="showDeleteModal = false"
+                                    class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-xl font-semibold transition-all">
+                                Cancelar
+                            </button>
+                            <button @click="deleteBeneficio"
+                                    class="flex-1 btn-danger text-white px-6 py-3 rounded-xl font-semibold shadow-lg">
+                                Excluir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    beneficios: [],
+                    loading: false,
+                    showModal: false,
+                    showTransferModal: false,
+                    showDeleteModal: false,
+                    editMode: false,
+                    deleteId: null,
+                    form: {
+                        nome: '',
+                        descricao: '',
+                        valor: '',
+                        ativo: true
+                    },
+                    transferForm: {
+                        fromId: '',
+                        toId: '',
+                        amount: ''
+                    },
+                    alert: {
+                        show: false,
+                        message: '',
+                        type: 'success'
+                    },
+                    apiBaseUrl: 'http://localhost:8080/api/v1/beneficios'
+                }
+            },
+            computed: {
+                activeBeneficios() {
+                    return this.beneficios.filter(b => b.ativo);
+                }
+            },
+            mounted() {
+                this.loadBeneficios();
+            },
+            methods: {
+                async loadBeneficios() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch(this.apiBaseUrl);
+                        this.beneficios = await response.json();
+                    } catch (error) {
+                        this.showAlert('Erro ao carregar benefícios', 'error');
+                        console.error(error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                openCreateModal() {
+                    this.editMode = false;
+                    this.form = { nome: '', descricao: '', valor: '', ativo: true };
+                    this.showModal = true;
+                },
+                
+                openEditModal(beneficio) {
+                    this.editMode = true;
+                    this.form = { ...beneficio };
+                    this.showModal = true;
+                },
+                
+                closeModal() {
+                    this.showModal = false;
+                },
+                
+                async saveBeneficio() {
+                    try {
+                        const url = this.editMode ? `${this.apiBaseUrl}/${this.form.id}` : this.apiBaseUrl;
+                        const method = this.editMode ? 'PUT' : 'POST';
+                        
+                        const response = await fetch(url, {
+                            method,
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.form)
+                        });
+                        
+                        if (response.ok) {
+                            this.showAlert(this.editMode ? 'Benefício atualizado com sucesso!' : 'Benefício criado com sucesso!', 'success');
+                            this.closeModal();
+                            this.loadBeneficios();
+                        } else {
+                            throw new Error('Erro ao salvar benefício');
+                        }
+                    } catch (error) {
+                        this.showAlert('Erro ao salvar benefício', 'error');
+                        console.error(error);
+                    }
+                },
+                
+                confirmDelete(id) {
+                    this.deleteId = id;
+                    this.showDeleteModal = true;
+                },
+                
+                async deleteBeneficio() {
+                    try {
+                        const response = await fetch(`${this.apiBaseUrl}/${this.deleteId}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        if (response.ok) {
+                            this.showAlert('Benefício excluído com sucesso!', 'success');
+                            this.showDeleteModal = false;
+                            this.loadBeneficios();
+                        } else {
+                            throw new Error('Erro ao excluir benefício');
+                        }
+                    } catch (error) {
+                        this.showAlert('Erro ao excluir benefício', 'error');
+                        console.error(error);
+                    }
+                },
+                
+                openTransferModal() {
+                    this.transferForm = { fromId: '', toId: '', amount: '' };
+                    this.showTransferModal = true;
+                },
+                
+                closeTransferModal() {
+                    this.showTransferModal = false;
+                },
+                
+                async executeTransfer() {
+                    if (this.transferForm.fromId === this.transferForm.toId) {
+                        this.showAlert('Origem e destino não podem ser iguais', 'error');
+                        return;
+                    }
+                    
+                    try {
+                        const response = await fetch(`${this.apiBaseUrl}/transfer`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                fromId: parseInt(this.transferForm.fromId),
+                                toId: parseInt(this.transferForm.toId),
+                                amount: parseFloat(this.transferForm.amount),
+                                idempotencyKey: this.generateUUID()
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            this.showAlert('Transferência realizada com sucesso!', 'success');
+                            this.closeTransferModal();
+                            this.loadBeneficios();
+                        } else {
+                            throw new Error('Erro ao realizar transferência');
+                        }
+                    } catch (error) {
+                        this.showAlert('Erro ao realizar transferência', 'error');
+                        console.error(error);
+                    }
+                },
+                
+                formatCurrency(value) {
+                    return new Intl.NumberFormat('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }).format(value);
+                },
+                
+                showAlert(message, type) {
+                    this.alert = { show: true, message, type };
+                    setTimeout(() => {
+                        this.alert.show = false;
+                    }, 5000);
+                },
+                
+                generateUUID() {
+                    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                        const r = Math.random() * 16 | 0;
+                        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                    });
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
